@@ -2,7 +2,7 @@
 **/__pycache__/
 **/*.pyc
 **/.env
-backend/uploads/
+**/uploads/
 **/*.log
 .git/
 frontend/node_modules/
