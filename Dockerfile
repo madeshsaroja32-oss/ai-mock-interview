@@ -16,4 +16,4 @@ RUN mkdir -p /app/uploads
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "echo '=== CONTAINER START ==='; echo \"--- ENV VARS ---\"; env | grep -E 'DATABASE|SECRET|GROQ|ALGORITHM|ACCESS' | cut -d= -f1; echo '--- STARTING UVICORN ---'; uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
