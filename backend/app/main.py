@@ -20,7 +20,7 @@ app.add_middleware(
     "https://ai-mock-interview-git-main-madeshsaroja32-oss.vercel.app",
     "https://ai-mock-interview-h76pldt6r-madeshsaroja32-oss.vercel.app",
 ],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
