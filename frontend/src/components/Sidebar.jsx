@@ -48,12 +48,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div style={styles.promoCard}>
-        <div style={styles.promoGlow} />
-        <div style={styles.promoTitle}>Go Pro</div>
-        <div style={styles.promoText}>Unlock unlimited AI interviews</div>
-      </div>
-
       <div style={styles.bottom}>
         <div style={styles.userRow}>
           <div style={styles.avatar}>
@@ -151,37 +145,6 @@ const styles = {
     fontSize: "1.1rem",
     width: "22px",
     textAlign: "center",
-  },
-
-  promoCard: {
-    position: "relative",
-    borderRadius: "12px",
-    padding: "1rem",
-    marginBottom: "1rem",
-    background:
-      "linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.2))",
-    border: "1px solid rgba(167, 139, 250, 0.35)",
-    overflow: "hidden",
-  },
-  promoGlow: {
-    position: "absolute",
-    inset: "-40%",
-    background:
-      "radial-gradient(circle at 30% 20%, rgba(236, 72, 153, 0.45), transparent 60%)",
-    pointerEvents: "none",
-  },
-  promoTitle: {
-    position: "relative",
-    fontWeight: 700,
-    color: "#fff",
-    fontSize: "0.9rem",
-    marginBottom: "0.25rem",
-  },
-  promoText: {
-    position: "relative",
-    fontSize: "0.72rem",
-    color: "#e0d9ff",
-    lineHeight: 1.4,
   },
 
   bottom: {
