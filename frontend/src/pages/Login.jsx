@@ -65,8 +65,9 @@ export default function Login() {
             <span
               style={styles.togglePassword}
               onClick={() => setShowPassword((s) => !s)}
+              title={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? "🙈" : "👁️"}
+              {showPassword ? "◉" : "◎"}
             </span>
           </div>
 
@@ -127,7 +128,8 @@ const styles = {
   overlay: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(135deg, rgba(15,15,25,0.85), rgba(20,30,50,0.9))",
+    background:
+      "linear-gradient(135deg, rgba(15,15,25,0.85), rgba(20,30,50,0.9))",
     zIndex: 0,
   },
   card: {
@@ -211,6 +213,7 @@ const styles = {
     cursor: "pointer",
     userSelect: "none",
     color: "#8b949e",
+    fontSize: "1rem",
   },
   optionsRow: {
     display: "flex",
