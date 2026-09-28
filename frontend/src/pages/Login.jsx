@@ -66,11 +66,11 @@ export default function Login() {
               style={styles.togglePassword}
               onClick={() => setShowPassword((s) => !s)}
             >
-              {showPassword ? "🙈" : "👁"}
+              {showPassword ? "🙈" : "👁️"}
             </span>
           </div>
 
-          {/* Keep me logged in */}
+          {/* Options */}
           <div style={styles.optionsRow}>
             <label style={styles.checkboxLabel}>
               <input
@@ -93,39 +93,11 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Social logins (visual only, non-functional) */}
-        <div style={styles.divider}>
-          <span style={styles.dividerLine} />
-          <span style={styles.dividerText}>Or Log In Using</span>
-          <span style={styles.dividerLine} />
-        </div>
-
-        <div style={styles.socialRow}>
-          <button
-            type="button"
-            style={{ ...styles.socialBtn, background: "#1877F2" }}
-            title="Facebook (coming soon)"
-          >
-            f
-          </button>
-          <button
-            type="button"
-            style={{ ...styles.socialBtn, background: "#1DA1F2" }}
-            title="Twitter (coming soon)"
-          >
-            🐦
-          </button>
-          <button
-            type="button"
-            style={{ ...styles.socialBtn, background: "#DB4437" }}
-            title="Google (coming soon)"
-          >
-            G
-          </button>
-        </div>
-
         <p style={styles.footer}>
-          New User? <Link to="/signup" style={styles.link}>Register</Link>
+          New User?{" "}
+          <Link to="/signup" style={styles.link}>
+            <span style={styles.registerText}>Register ✦</span>
+          </Link>
         </p>
       </div>
 
@@ -215,7 +187,6 @@ const styles = {
     background: "rgba(13, 17, 23, 0.7)",
     border: "1px solid rgba(48, 54, 61, 0.9)",
     borderRadius: "8px",
-    transition: "border 0.2s",
   },
   icon: {
     padding: "0 0.9rem",
@@ -270,47 +241,18 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 8px 20px rgba(31, 111, 235, 0.4)",
   },
-  divider: {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
-    margin: "1.5rem 0 1rem",
-  },
-  dividerLine: {
-    flex: 1,
-    height: "1px",
-    background: "rgba(139, 148, 158, 0.3)",
-  },
-  dividerText: {
-    color: "#8b949e",
-    fontSize: "0.8rem",
-    whiteSpace: "nowrap",
-  },
-  socialRow: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "0.75rem",
-  },
-  socialBtn: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "50%",
-    border: "none",
-    color: "white",
-    fontSize: "1.1rem",
-    fontWeight: "bold",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-  },
   footer: {
     textAlign: "center",
     color: "#8b949e",
     fontSize: "0.9rem",
     marginTop: "1.5rem",
     marginBottom: 0,
+  },
+  registerText: {
+    color: "#79c0ff",
+    fontWeight: "600",
+    letterSpacing: "0.5px",
+    textShadow: "0 0 8px rgba(121, 192, 255, 0.6)",
   },
   copyright: {
     position: "relative",
