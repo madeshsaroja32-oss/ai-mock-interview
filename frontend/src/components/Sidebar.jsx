@@ -24,16 +24,14 @@ export default function Sidebar() {
 
   return (
     <aside style={styles.sidebar}>
-      {/* Brand */}
       <div style={styles.brand}>
         <div style={styles.brandIcon}>AI</div>
         <div>
-          <div style={styles.brandTitle}>AI Mock Interview</div>
+          <div style={styles.brandTitle}>Mock Interview</div>
           <div style={styles.brandSub}>Workspace</div>
         </div>
       </div>
 
-      {/* Nav */}
       <nav style={styles.nav}>
         {nav.map((item) => (
           <button
@@ -50,7 +48,12 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Bottom */}
+      <div style={styles.promoCard}>
+        <div style={styles.promoGlow} />
+        <div style={styles.promoTitle}>Go Pro</div>
+        <div style={styles.promoText}>Unlock unlimited AI interviews</div>
+      </div>
+
       <div style={styles.bottom}>
         <div style={styles.userRow}>
           <div style={styles.avatar}>
@@ -61,7 +64,6 @@ export default function Sidebar() {
             <div style={styles.userEmail}>{user?.email}</div>
           </div>
         </div>
-
         <button style={styles.logout} onClick={handleLogout}>
           <span>⏻</span> Log out
         </button>
@@ -74,8 +76,10 @@ const styles = {
   sidebar: {
     width: "240px",
     minWidth: "240px",
-    background: "#0b1117",
-    borderRight: "1px solid #1f2733",
+    background: "rgba(20, 10, 40, 0.65)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    borderRight: "1px solid rgba(139, 92, 246, 0.18)",
     display: "flex",
     flexDirection: "column",
     padding: "1.25rem 1rem",
@@ -90,13 +94,13 @@ const styles = {
     gap: "0.7rem",
     padding: "0.25rem 0.5rem 1.5rem",
     marginBottom: "0.5rem",
-    borderBottom: "1px solid #1f2733",
+    borderBottom: "1px solid rgba(139, 92, 246, 0.15)",
   },
   brandIcon: {
     width: "38px",
     height: "38px",
     borderRadius: "10px",
-    background: "linear-gradient(135deg, #1f6feb, #238636)",
+    background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
     color: "white",
     fontWeight: 800,
     fontSize: "0.85rem",
@@ -104,17 +108,16 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     letterSpacing: "0.5px",
+    boxShadow: "0 0 20px rgba(139, 92, 246, 0.55)",
   },
   brandTitle: {
-    color: "#e6edf3",
+    color: "#f5f3ff",
     fontWeight: 700,
     fontSize: "0.85rem",
     lineHeight: 1.2,
   },
-  brandSub: {
-    color: "#6e7681",
-    fontSize: "0.7rem",
-  },
+  brandSub: { color: "#9ca3af", fontSize: "0.7rem" },
+
   nav: {
     display: "flex",
     flexDirection: "column",
@@ -128,27 +131,61 @@ const styles = {
     padding: "0.65rem 0.75rem",
     background: "transparent",
     border: "1px solid transparent",
-    borderRadius: "8px",
-    color: "#8b949e",
+    borderRadius: "10px",
+    color: "#a5a0c2",
     cursor: "pointer",
     fontSize: "0.9rem",
     fontFamily: "inherit",
     textAlign: "left",
-    transition: "background 0.15s, color 0.15s",
+    transition: "all 0.2s",
   },
   navItemActive: {
-    background: "#1f6feb22",
-    border: "1px solid #1f6feb55",
-    color: "#79c0ff",
+    background:
+      "linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.25))",
+    border: "1px solid rgba(167, 139, 250, 0.5)",
+    color: "#f5f3ff",
     fontWeight: 600,
+    boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)",
   },
   navIcon: {
     fontSize: "1.1rem",
     width: "22px",
     textAlign: "center",
   },
+
+  promoCard: {
+    position: "relative",
+    borderRadius: "12px",
+    padding: "1rem",
+    marginBottom: "1rem",
+    background:
+      "linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.2))",
+    border: "1px solid rgba(167, 139, 250, 0.35)",
+    overflow: "hidden",
+  },
+  promoGlow: {
+    position: "absolute",
+    inset: "-40%",
+    background:
+      "radial-gradient(circle at 30% 20%, rgba(236, 72, 153, 0.45), transparent 60%)",
+    pointerEvents: "none",
+  },
+  promoTitle: {
+    position: "relative",
+    fontWeight: 700,
+    color: "#fff",
+    fontSize: "0.9rem",
+    marginBottom: "0.25rem",
+  },
+  promoText: {
+    position: "relative",
+    fontSize: "0.72rem",
+    color: "#e0d9ff",
+    lineHeight: 1.4,
+  },
+
   bottom: {
-    borderTop: "1px solid #1f2733",
+    borderTop: "1px solid rgba(139, 92, 246, 0.15)",
     paddingTop: "1rem",
     display: "flex",
     flexDirection: "column",
@@ -164,7 +201,7 @@ const styles = {
     width: "34px",
     height: "34px",
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #1f6feb, #238636)",
+    background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
     color: "white",
     fontWeight: 700,
     fontSize: "0.85rem",
@@ -172,12 +209,11 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
+    boxShadow: "0 0 15px rgba(139, 92, 246, 0.5)",
   },
-  userInfo: {
-    overflow: "hidden",
-  },
+  userInfo: { overflow: "hidden" },
   userName: {
-    color: "#e6edf3",
+    color: "#f5f3ff",
     fontSize: "0.85rem",
     fontWeight: 600,
     whiteSpace: "nowrap",
@@ -185,7 +221,7 @@ const styles = {
     textOverflow: "ellipsis",
   },
   userEmail: {
-    color: "#6e7681",
+    color: "#9ca3af",
     fontSize: "0.7rem",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -197,10 +233,10 @@ const styles = {
     justifyContent: "center",
     gap: "0.5rem",
     padding: "0.6rem",
-    background: "#161b22",
-    border: "1px solid #30363d",
-    borderRadius: "8px",
-    color: "#e6edf3",
+    background: "rgba(139, 92, 246, 0.15)",
+    border: "1px solid rgba(139, 92, 246, 0.3)",
+    borderRadius: "10px",
+    color: "#f5f3ff",
     cursor: "pointer",
     fontSize: "0.85rem",
     fontFamily: "inherit",

@@ -21,30 +21,32 @@ const styles = {
   wrap: {
     display: "flex",
     minHeight: "100vh",
-    background: "#0d1117",
-    color: "#e6edf3",
+    background:
+      "radial-gradient(circle at 15% 10%, #1e1b3a 0%, #0d0a1f 45%, #050213 100%)",
+    color: "#f5f3ff",
     fontFamily: "'Segoe UI', sans-serif",
   },
   main: {
     flex: 1,
     padding: "2rem 2.5rem",
-    maxWidth: "1100px",
+    maxWidth: "1150px",
     overflowX: "hidden",
   },
   header: {
     marginBottom: "1.75rem",
     paddingBottom: "1.25rem",
-    borderBottom: "1px solid #1f2733",
+    borderBottom: "1px solid rgba(139, 92, 246, 0.15)",
   },
   title: {
     margin: 0,
-    fontSize: "1.7rem",
+    fontSize: "1.8rem",
     fontWeight: 700,
-    color: "#e6edf3",
+    color: "#f5f3ff",
+    letterSpacing: "-0.3px",
   },
   subtitle: {
-    margin: "0.35rem 0 0",
-    color: "#8b949e",
+    margin: "0.4rem 0 0",
+    color: "#a5a0c2",
     fontSize: "0.95rem",
   },
   content: {
