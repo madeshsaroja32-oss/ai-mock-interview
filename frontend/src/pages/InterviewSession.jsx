@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { finishInterview, getInterview, submitAnswer } from "../api/client";
+import PageLayout from "../components/PageLayout";
 
 export default function InterviewSession() {
   const { id } = useParams();
@@ -26,11 +27,7 @@ export default function InterviewSession() {
     setError("");
     setBusy(true);
     try {
-      const data = await submitAnswer(
-        interview.id,
-        interview.questions[current],
-        answer
-      );
+      const data = await submitAnswer(interview.id, interview.questions[current], answer);
       setInterview(data);
       setFeedback(data.answers[data.answers.length - 1]);
       setAnswer("");
@@ -45,7 +42,6 @@ export default function InterviewSession() {
     setFeedback(null);
     const next = current + 1;
     if (next >= interview.questions.length) {
-      // Finish
       setBusy(true);
       try {
         const data = await finishInterview(interview.id);
@@ -60,11 +56,12 @@ export default function InterviewSession() {
     }
   }
 
-  if (error && !interview) {
-    return <div style={styles.wrap}><p style={styles.error}>{error}</p></div>;
-  }
   if (!interview) {
-    return <div style={styles.wrap}><p style={styles.loading}>Loading...</p></div>;
+    return (
+      <PageLayout title="Interview">
+        <p style={{ color: "#8b949e" }}>{error || "Loading..."}</p>
+      </PageLayout>
+    );
   }
 
   const total = interview.questions.length;
@@ -72,99 +69,82 @@ export default function InterviewSession() {
   const isLast = current === total - 1;
 
   return (
-    <div style={styles.wrap}>
-      <header style={styles.header}>
-        <h1 style={styles.logo}>AI Mock Interview</h1>
-        <span style={styles.progress}>Question {current + 1} / {total}</span>
-      </header>
+    <PageLayout
+      title={`Question ${current + 1} / ${total}`}
+      subtitle={`Role: ${interview.role}`}
+    >
+      <div style={styles.progressBar}>
+        <div style={{ ...styles.progressFill, width: `${(done / total) * 100}%` }} />
+      </div>
 
-      <main style={styles.main}>
-        <div style={styles.progressBar}>
-          <div style={{ ...styles.progressFill, width: `${(done / total) * 100}%` }} />
-        </div>
+      <div style={styles.card}>
+        <h2 style={styles.question}>{interview.questions[current]}</h2>
 
-        <div style={styles.card}>
-          <p style={styles.roleLabel}>Role: {interview.role}</p>
-          <h2 style={styles.question}>{interview.questions[current]}</h2>
+        {!feedback ? (
+          <>
+            <textarea
+              style={styles.textarea}
+              placeholder="Type your answer here..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              rows={6}
+            />
+            {error && <p style={styles.error}>{error}</p>}
+            <button
+              style={{ ...styles.button, opacity: busy || !answer.trim() ? 0.5 : 1 }}
+              disabled={busy || !answer.trim()}
+              onClick={handleSubmit}
+            >
+              {busy ? "Evaluating..." : "Submit Answer"}
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={styles.feedbackBox}>
+              <h3 style={styles.feedbackTitle}>
+                Score: <span style={styles.score}>{feedback.score}/10</span>
+              </h3>
+              <p style={styles.feedbackText}>{feedback.feedback}</p>
 
-          {!feedback ? (
-            <>
-              <textarea
-                style={styles.textarea}
-                placeholder="Type your answer here..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                rows={6}
-              />
-              {error && <p style={styles.error}>{error}</p>}
-              <button
-                style={{ ...styles.button, opacity: busy || !answer.trim() ? 0.5 : 1 }}
-                disabled={busy || !answer.trim()}
-                onClick={handleSubmit}
-              >
-                {busy ? "Evaluating..." : "Submit Answer"}
-              </button>
-            </>
-          ) : (
-            <>
-              <div style={styles.feedbackBox}>
-                <h3 style={styles.feedbackTitle}>
-                  Score: <span style={styles.score}>{feedback.score}/10</span>
-                </h3>
-                <p style={styles.feedbackText}>{feedback.feedback}</p>
-
-                {feedback.strengths?.length > 0 && (
-                  <>
-                    <h4 style={styles.listTitle}>✅ Strengths</h4>
-                    <ul style={styles.list}>
-                      {feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}
-                    </ul>
-                  </>
-                )}
-
-                {feedback.improvements?.length > 0 && (
-                  <>
-                    <h4 style={styles.listTitle}>💡 Improvements</h4>
-                    <ul style={styles.list}>
-                      {feedback.improvements.map((s, i) => <li key={i}>{s}</li>)}
-                    </ul>
-                  </>
-                )}
-              </div>
-              <button
-                style={styles.button}
-                disabled={busy}
-                onClick={handleNext}
-              >
-                {busy ? "Finishing..." : isLast ? "Finish Interview" : "Next Question →"}
-              </button>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
+              {feedback.strengths?.length > 0 && (
+                <>
+                  <h4 style={styles.listTitle}>✅ Strengths</h4>
+                  <ul style={styles.list}>
+                    {feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}
+                  </ul>
+                </>
+              )}
+              {feedback.improvements?.length > 0 && (
+                <>
+                  <h4 style={styles.listTitle}>💡 Improvements</h4>
+                  <ul style={styles.list}>
+                    {feedback.improvements.map((s, i) => <li key={i}>{s}</li>)}
+                  </ul>
+                </>
+              )}
+            </div>
+            <button style={styles.button} disabled={busy} onClick={handleNext}>
+              {busy ? "Finishing..." : isLast ? "Finish Interview" : "Next Question →"}
+            </button>
+          </>
+        )}
+      </div>
+    </PageLayout>
   );
 }
 
 const styles = {
-  wrap: { minHeight: "100vh", background: "#0d1117", color: "#e6edf3" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 2rem", borderBottom: "1px solid #30363d" },
-  logo: { margin: 0, fontSize: "1.2rem" },
-  progress: { color: "#8b949e" },
-  main: { padding: "2rem", maxWidth: "720px", margin: "0 auto" },
-  progressBar: { height: "6px", background: "#21262d", borderRadius: "999px", marginBottom: "1.5rem", overflow: "hidden" },
+  progressBar: { height: "6px", background: "#21262d", borderRadius: "999px", overflow: "hidden" },
   progressFill: { height: "100%", background: "#1f6feb", transition: "width 0.3s" },
-  card: { background: "#161b22", padding: "1.5rem", borderRadius: "8px", border: "1px solid #30363d" },
-  roleLabel: { color: "#8b949e", fontSize: "0.85rem", margin: "0 0 0.5rem 0" },
-  question: { fontSize: "1.2rem", marginTop: 0, marginBottom: "1rem" },
-  textarea: { width: "100%", padding: "0.8rem", borderRadius: "6px", border: "1px solid #30363d", background: "#0d1117", color: "#e6edf3", fontSize: "0.95rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" },
-  button: { marginTop: "1rem", padding: "0.8rem 1.5rem", borderRadius: "6px", border: "none", background: "#238636", color: "white", fontWeight: "bold", cursor: "pointer", fontSize: "1rem" },
-  error: { color: "#f85149", background: "#3d1418", padding: "0.5rem", borderRadius: "6px", fontSize: "0.9rem" },
-  loading: { padding: "2rem", color: "#8b949e" },
-  feedbackBox: { background: "#0d1117", padding: "1rem", borderRadius: "6px", border: "1px solid #30363d", marginTop: "0.5rem" },
+  card: { background: "#161b22", padding: "1.75rem", borderRadius: "10px", border: "1px solid #30363d", maxWidth: "720px" },
+  question: { fontSize: "1.15rem", marginTop: 0, marginBottom: "1rem", lineHeight: 1.5 },
+  textarea: { width: "100%", padding: "0.85rem", borderRadius: "8px", border: "1px solid #30363d", background: "#0d1117", color: "#e6edf3", fontSize: "0.95rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box" },
+  button: { marginTop: "1rem", padding: "0.85rem 1.5rem", borderRadius: "8px", border: "none", background: "#238636", color: "white", fontWeight: 600, cursor: "pointer", fontSize: "0.95rem" },
+  error: { color: "#f85149", background: "#3d1418", padding: "0.6rem", borderRadius: "6px", fontSize: "0.9rem" },
+  feedbackBox: { background: "#0d1117", padding: "1rem", borderRadius: "8px", border: "1px solid #30363d", marginTop: "0.5rem" },
   feedbackTitle: { margin: 0, marginBottom: "0.5rem" },
   score: { color: "#79c0ff", fontSize: "1.4rem" },
-  feedbackText: { color: "#c9d1d9", lineHeight: 1.6 },
-  listTitle: { marginTop: "1rem", marginBottom: "0.4rem" },
-  list: { color: "#c9d1d9", paddingLeft: "1.2rem", margin: 0 },
+  feedbackText: { color: "#c9d1d9", lineHeight: 1.6, margin: "0 0 0.75rem" },
+  listTitle: { marginTop: "0.75rem", marginBottom: "0.4rem" },
+  list: { color: "#c9d1d9", paddingLeft: "1.2rem", margin: 0, lineHeight: 1.6 },
 };
