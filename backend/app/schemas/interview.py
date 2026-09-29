@@ -9,15 +9,28 @@ class StartInterview(BaseModel):
     num_questions: int = 5
 
 
+class StartQuiz(BaseModel):
+    topic: str
+    resume_id: int
+    num_questions: int = 5
+
+
 class AnswerSubmission(BaseModel):
     question: str
     answer: str
 
 
+class QuizAnswerSubmission(BaseModel):
+    question_index: int
+    selected_index: int
+
+
 class InterviewResponse(BaseModel):
     id: int
     role: str
-    questions: List[str]
+    mode: str = "interview"
+    topic: Optional[str] = None
+    questions: List[dict] | List[str]
     answers: List[dict]
     scores: List[int]
     average_score: Optional[int] = None

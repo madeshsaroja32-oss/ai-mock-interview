@@ -26,38 +26,50 @@ export default function Reports() {
   const bestScore = completed.length
     ? Math.max(...completed.map((i) => i.average_score || 0))
     : 0;
+  const quizCount = interviews.filter((i) => i.mode === "quiz").length;
+  const interviewCount = interviews.filter((i) => i.mode !== "quiz").length;
 
   const stats = [
     {
-      label: "Total Interviews",
+      label: "Total Sessions",
       value: interviews.length,
       accent: "#8b5cf6",
+      icon: "🎯",
+    },
+    {
+      label: "Interviews",
+      value: interviewCount,
+      accent: "#ec4899",
       icon: "🎤",
     },
     {
-      label: "Average Score",
-      value: overallAvg || "—",
+      label: "Quizzes",
+      value: quizCount,
       accent: "#22d3ee",
+      icon: "📝",
+    },
+    {
+      label: "Avg Score",
+      value: overallAvg || "—",
+      accent: "#10b981",
       icon: "⭐",
     },
-    {
-      label: "Best Score",
-      value: bestScore || "—",
-      accent: "#ec4899",
-      icon: "🏆",
-    },
-    {
-      label: "Completed",
-      value: completed.length,
-      accent: "#10b981",
-      icon: "✅",
-    },
   ];
+
+  // Which report page to open
+  function openRow(it) {
+    const done = it.average_score !== null;
+    if (it.mode === "quiz") {
+      navigate(done ? `/quiz/${it.id}/report` : `/quiz/${it.id}`);
+    } else {
+      navigate(done ? `/interview/${it.id}/report` : `/interview/${it.id}`);
+    }
+  }
 
   return (
     <PageLayout
       title="Your Reports"
-      subtitle="A history of all your mock interviews and performance."
+      subtitle="A history of all your mock interviews and quiz sessions."
     >
       <div style={styles.statsGrid}>
         {stats.map((s) => (
@@ -71,23 +83,27 @@ export default function Reports() {
             >
               {s.icon}
             </div>
-            <div style={{ ...styles.statValue, color: s.accent }}>{s.value}</div>
+            <div style={{ ...styles.statValue, color: s.accent }}>
+              {s.value}
+            </div>
             <div style={styles.statLabel}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
-      {loading && <p style={styles.muted}>Loading interviews...</p>}
+      {loading && <p style={styles.muted}>Loading sessions...</p>}
 
       {!loading && interviews.length === 0 && (
         <div style={styles.emptyState}>
-          <p style={styles.muted}>You haven't taken any interviews yet.</p>
+          <p style={styles.muted}>
+            You haven't taken any interviews or quizzes yet.
+          </p>
           <button
             style={styles.ctaButton}
             onClick={() => navigate("/interview/setup")}
           >
-            Start Your First Interview
+            Start Your First Session
           </button>
         </div>
       )}
@@ -96,20 +112,26 @@ export default function Reports() {
         <div style={styles.list}>
           {interviews.map((it) => {
             const done = it.average_score !== null;
-            const pct = done ? it.average_score * 10 : 0;
+            const pct = done ? Math.min(it.average_score, 100) : 0;
+            const isQuiz = it.mode === "quiz";
+
             return (
               <div
                 key={it.id}
                 style={styles.row}
-                onClick={() =>
-                  navigate(done ? `/interview/${it.id}/report` : `/interview/${it.id}`)
-                }
+                onClick={() => openRow(it)}
               >
                 <div style={styles.rowMain}>
-                  <div style={styles.rowRole}>{it.role}</div>
+                  <div style={styles.rowTitle}>
+                    <span style={styles.modeBadge}>
+                      {isQuiz ? "📝 Quiz" : "🎤 Interview"}
+                    </span>
+                    <span style={styles.rowRole}>{it.role}</span>
+                  </div>
                   <div style={styles.rowMeta}>
                     {new Date(it.created_at).toLocaleString()} ·{" "}
-                    {it.answers?.length || 0}/{it.questions?.length || 0} answered
+                    {it.answers?.length || 0}/{it.questions?.length || 0}{" "}
+                    answered
                   </div>
                   <div style={styles.barWrap}>
                     <div
@@ -123,9 +145,13 @@ export default function Reports() {
                     />
                   </div>
                 </div>
+
                 <div style={styles.rowRight}>
                   {done ? (
-                    <span style={styles.scoreBadge}>{it.average_score}/10</span>
+                    <span style={styles.scoreBadge}>
+                      {it.average_score}
+                      {isQuiz ? "%" : "/10"}
+                    </span>
                   ) : (
                     <span style={styles.inProgressBadge}>In Progress</span>
                   )}
@@ -143,7 +169,7 @@ export default function Reports() {
 const styles = {
   statsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
     gap: "1rem",
   },
   statCard: {
@@ -189,11 +215,26 @@ const styles = {
     transition: "border-color 0.2s",
   },
   rowMain: { flex: 1, minWidth: 0 },
+  rowTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.6rem",
+    flexWrap: "wrap",
+  },
+  modeBadge: {
+    background: "rgba(139, 92, 246, 0.18)",
+    color: "#c4b5fd",
+    padding: "0.2rem 0.6rem",
+    borderRadius: "999px",
+    fontSize: "0.72rem",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+  },
   rowRole: { fontWeight: 600, color: "#f5f3ff" },
   rowMeta: {
     color: "#a5a0c2",
     fontSize: "0.82rem",
-    marginTop: "0.25rem",
+    marginTop: "0.35rem",
   },
   barWrap: {
     marginTop: "0.65rem",
@@ -215,6 +256,7 @@ const styles = {
     borderRadius: "999px",
     fontSize: "0.85rem",
     fontWeight: 600,
+    whiteSpace: "nowrap",
   },
   inProgressBadge: {
     background: "rgba(217, 153, 34, 0.2)",
@@ -223,6 +265,7 @@ const styles = {
     borderRadius: "999px",
     fontSize: "0.78rem",
     fontWeight: 600,
+    whiteSpace: "nowrap",
   },
   arrow: { color: "#a5a0c2", fontSize: "1.2rem" },
 
