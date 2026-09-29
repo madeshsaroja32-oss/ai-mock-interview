@@ -11,6 +11,7 @@ export default function InterviewSession() {
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [skipping, setSkipping] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -39,6 +40,28 @@ export default function InterviewSession() {
       setError(err.message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleSkip() {
+    if (!window.confirm("Skip this question? It will be marked as skipped.")) {
+      return;
+    }
+    setError("");
+    setSkipping(true);
+    try {
+      const data = await submitAnswer(
+        interview.id,
+        interview.questions[current],
+        "[SKIPPED]"
+      );
+      setInterview(data);
+      setFeedback(data.answers[data.answers.length - 1]);
+      setAnswer("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSkipping(false);
     }
   }
 
@@ -73,15 +96,16 @@ export default function InterviewSession() {
   const isLast = current === total - 1;
   const progressPct = Math.round(((current + (feedback ? 1 : 0)) / total) * 100);
 
-  // Average score so far
   const scores = interview.answers.map((a) => a.score).filter((s) => s != null);
   const avgSoFar = scores.length
     ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
     : null;
 
+  const isLastAnswerSkipped = feedback?.answer === "[SKIPPED]";
+
   return (
     <PageLayout>
-      {/* ─── Top bar ─── */}
+      {/* Top bar */}
       <div style={styles.topBar}>
         <div>
           <div style={styles.qCounter}>
@@ -104,9 +128,9 @@ export default function InterviewSession() {
         </div>
       </div>
 
-      {/* ─── Two-column layout ─── */}
+      {/* Two-column layout */}
       <div style={styles.grid}>
-        {/* LEFT: Question card */}
+        {/* Main card */}
         <div style={styles.card}>
           <div style={styles.qBadge}>Q{current + 1}</div>
 
@@ -126,64 +150,102 @@ export default function InterviewSession() {
                 <span style={styles.hint}>
                   💡 Tip: aim for 3-5 sentences. AI scores on clarity, depth, and relevance.
                 </span>
-                <span style={styles.charCount}>
-                  {answer.length} chars
-                </span>
+                <span style={styles.charCount}>{answer.length} chars</span>
               </div>
 
               {error && <div style={styles.error}>{error}</div>}
 
-              <button
-                style={{
-                  ...styles.submitBtn,
-                  opacity: busy || !answer.trim() ? 0.5 : 1,
-                  cursor: busy || !answer.trim() ? "not-allowed" : "pointer",
-                }}
-                disabled={busy || !answer.trim()}
-                onClick={handleSubmit}
-              >
-                {busy ? "🤖 AI is evaluating..." : "Submit Answer →"}
-              </button>
+              <div style={styles.actionRow}>
+                <button
+                  style={styles.skipBtn}
+                  onClick={handleSkip}
+                  disabled={busy || skipping}
+                  title="Skip this question"
+                >
+                  {skipping ? "Skipping..." : "⏭ Skip"}
+                </button>
+
+                <button
+                  style={{
+                    ...styles.submitBtn,
+                    opacity: busy || skipping || !answer.trim() ? 0.5 : 1,
+                    cursor:
+                      busy || skipping || !answer.trim()
+                        ? "not-allowed"
+                        : "pointer",
+                  }}
+                  disabled={busy || skipping || !answer.trim()}
+                  onClick={handleSubmit}
+                >
+                  {busy ? "🤖 AI is evaluating..." : "Submit Answer →"}
+                </button>
+              </div>
             </>
           ) : (
             <>
-              <div style={styles.feedbackCard}>
+              <div
+                style={{
+                  ...styles.feedbackCard,
+                  borderColor: isLastAnswerSkipped
+                    ? "rgba(217, 153, 34, 0.4)"
+                    : "rgba(139, 92, 246, 0.2)",
+                }}
+              >
                 <div style={styles.feedbackHeader}>
-                  <span style={styles.feedbackLabel}>AI EVALUATION</span>
-                  <div style={styles.scoreWrap}>
-                    <span style={styles.scoreBig}>{feedback.score}</span>
-                    <span style={styles.scoreMax}>/10</span>
+                  <span
+                    style={{
+                      ...styles.feedbackLabel,
+                      color: isLastAnswerSkipped ? "#fbbf24" : "#c4b5fd",
+                    }}
+                  >
+                    {isLastAnswerSkipped ? "⏭ SKIPPED" : "AI EVALUATION"}
+                  </span>
+                  {!isLastAnswerSkipped && (
+                    <div style={styles.scoreWrap}>
+                      <span style={styles.scoreBig}>{feedback.score}</span>
+                      <span style={styles.scoreMax}>/10</span>
+                    </div>
+                  )}
+                </div>
+
+                <p style={styles.feedbackText}>
+                  {isLastAnswerSkipped
+                    ? "You skipped this question. Skipped questions count as 0."
+                    : feedback.feedback}
+                </p>
+
+                {!isLastAnswerSkipped && (
+                  <div style={styles.twoCol}>
+                    {feedback.strengths?.length > 0 && (
+                      <div style={styles.listBox}>
+                        <div style={styles.listTitle}>✅ Strengths</div>
+                        <ul style={styles.list}>
+                          {feedback.strengths.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {feedback.improvements?.length > 0 && (
+                      <div style={styles.listBox}>
+                        <div style={styles.listTitle}>💡 Improvements</div>
+                        <ul style={styles.list}>
+                          {feedback.improvements.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                <p style={styles.feedbackText}>{feedback.feedback}</p>
-
-                <div style={styles.twoCol}>
-                  {feedback.strengths?.length > 0 && (
-                    <div style={styles.listBox}>
-                      <div style={styles.listTitle}>✅ Strengths</div>
-                      <ul style={styles.list}>
-                        {feedback.strengths.map((s, i) => (
-                          <li key={i}>{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {feedback.improvements?.length > 0 && (
-                    <div style={styles.listBox}>
-                      <div style={styles.listTitle}>💡 Improvements</div>
-                      <ul style={styles.list}>
-                        {feedback.improvements.map((s, i) => (
-                          <li key={i}>{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
 
               <button
-                style={{ ...styles.submitBtn, width: "100%", marginTop: "1.25rem" }}
+                style={{
+                  ...styles.submitBtn,
+                  width: "100%",
+                  marginTop: "1.25rem",
+                }}
                 disabled={busy}
                 onClick={handleNext}
               >
@@ -197,7 +259,7 @@ export default function InterviewSession() {
           )}
         </div>
 
-        {/* RIGHT: Interview guide panel */}
+        {/* Side panel */}
         <div style={styles.sidePanel}>
           <div style={styles.sideCard}>
             <div style={styles.sideTitle}>📊 Session Stats</div>
@@ -231,16 +293,16 @@ export default function InterviewSession() {
           <div style={styles.sideCard}>
             <div style={styles.sideTitle}>⚡️ Quick Facts</div>
             <div style={styles.factRow}>
-              <span style={styles.factIcon}>🧠</span>
+              <span style={styles.factIcon}>🤖</span>
               <span style={styles.factText}>AI reads your answer for clarity and depth</span>
             </div>
             <div style={styles.factRow}>
-              <span style={styles.factIcon}>📋</span>
-              <span style={styles.factText}>Feedback appears instantly after you submit</span>
+              <span style={styles.factIcon}>⏭</span>
+              <span style={styles.factText}>Skip any question — it counts as 0</span>
             </div>
             <div style={styles.factRow}>
               <span style={styles.factIcon}>🏆</span>
-              <span style={styles.factText}>Final report is generated after all questions</span>
+              <span style={styles.factText}>Final report after all questions</span>
             </div>
           </div>
         </div>
@@ -258,31 +320,11 @@ const styles = {
     gap: "1.5rem",
     marginBottom: "1.5rem",
   },
-  qCounter: {
-    color: "#c4b5fd",
-    fontSize: "1rem",
-    fontWeight: 600,
-    letterSpacing: "0.3px",
-  },
-  qBig: {
-    color: "#f5f3ff",
-    fontSize: "1.6rem",
-    fontWeight: 800,
-  },
-  qSlash: {
-    color: "#a5a0c2",
-    fontSize: "0.95rem",
-    fontWeight: 500,
-  },
-  roleLabel: {
-    color: "#a5a0c2",
-    fontSize: "0.82rem",
-    marginTop: "0.2rem",
-  },
-  progressWrap: {
-    flex: 1,
-    maxWidth: "360px",
-  },
+  qCounter: { color: "#c4b5fd", fontSize: "1rem", fontWeight: 600 },
+  qBig: { color: "#f5f3ff", fontSize: "1.6rem", fontWeight: 800 },
+  qSlash: { color: "#a5a0c2", fontSize: "0.95rem", fontWeight: 500 },
+  roleLabel: { color: "#a5a0c2", fontSize: "0.82rem", marginTop: "0.2rem" },
+  progressWrap: { flex: 1, maxWidth: "360px" },
   progressTrack: {
     height: "8px",
     background: "rgba(139, 92, 246, 0.12)",
@@ -302,7 +344,6 @@ const styles = {
     textAlign: "right",
   },
 
-  /* Two-column grid */
   grid: {
     display: "grid",
     gridTemplateColumns: "minmax(0, 1.6fr) minmax(260px, 1fr)",
@@ -325,9 +366,8 @@ const styles = {
     borderRadius: "8px",
     fontSize: "0.8rem",
     fontWeight: 800,
-    letterSpacing: "0.5px",
-    boxShadow: "0 4px 12px rgba(139, 92, 246, 0.5)",
     marginBottom: "1rem",
+    boxShadow: "0 4px 12px rgba(139, 92, 246, 0.5)",
   },
   question: {
     fontSize: "1.2rem",
@@ -370,8 +410,27 @@ const styles = {
     fontSize: "0.78rem",
     fontVariantNumeric: "tabular-nums",
   },
-  submitBtn: {
+
+  actionRow: {
+    display: "flex",
+    gap: "0.75rem",
     marginTop: "1.25rem",
+    alignItems: "stretch",
+  },
+  skipBtn: {
+    padding: "0.95rem 1.5rem",
+    borderRadius: "12px",
+    border: "1px solid rgba(217, 153, 34, 0.4)",
+    background: "rgba(217, 153, 34, 0.12)",
+    color: "#fbbf24",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontSize: "0.95rem",
+    whiteSpace: "nowrap",
+    transition: "all 0.2s",
+  },
+  submitBtn: {
+    flex: 1,
     padding: "0.95rem 1.75rem",
     borderRadius: "12px",
     border: "none",
@@ -393,10 +452,9 @@ const styles = {
     fontSize: "0.88rem",
   },
 
-  /* Feedback */
   feedbackCard: {
     background: "rgba(15, 10, 35, 0.55)",
-    border: "1px solid rgba(139, 92, 246, 0.2)",
+    border: "1px solid",
     borderRadius: "14px",
     padding: "1.5rem",
     marginTop: "0.5rem",
@@ -410,16 +468,11 @@ const styles = {
     borderBottom: "1px solid rgba(139, 92, 246, 0.15)",
   },
   feedbackLabel: {
-    color: "#c4b5fd",
     fontSize: "0.72rem",
     letterSpacing: "1.5px",
     fontWeight: 700,
   },
-  scoreWrap: {
-    display: "flex",
-    alignItems: "baseline",
-    gap: "0.15rem",
-  },
+  scoreWrap: { display: "flex", alignItems: "baseline", gap: "0.15rem" },
   scoreBig: {
     fontSize: "2.6rem",
     fontWeight: 800,
@@ -429,11 +482,7 @@ const styles = {
     backgroundClip: "text",
     lineHeight: 1,
   },
-  scoreMax: {
-    color: "#a5a0c2",
-    fontSize: "1rem",
-    fontWeight: 600,
-  },
+  scoreMax: { color: "#a5a0c2", fontSize: "1rem", fontWeight: 600 },
   feedbackText: {
     color: "#d8d4ec",
     lineHeight: 1.65,
@@ -465,7 +514,6 @@ const styles = {
     fontSize: "0.85rem",
   },
 
-  /* Right side panel */
   sidePanel: {
     display: "flex",
     flexDirection: "column",
@@ -486,7 +534,6 @@ const styles = {
     fontWeight: 700,
     color: "#f5f3ff",
     marginBottom: "1rem",
-    letterSpacing: "0.3px",
   },
   statRow: {
     display: "flex",
@@ -497,7 +544,6 @@ const styles = {
   },
   statKey: { color: "#a5a0c2", fontSize: "0.85rem" },
   statVal: { color: "#f5f3ff", fontWeight: 700, fontSize: "0.9rem" },
-
   tipList: {
     color: "#d8d4ec",
     paddingLeft: "1.1rem",
@@ -512,9 +558,5 @@ const styles = {
     marginBottom: "0.75rem",
   },
   factIcon: { fontSize: "1rem", flexShrink: 0 },
-  factText: {
-    color: "#d8d4ec",
-    fontSize: "0.82rem",
-    lineHeight: 1.5,
-  },
+  factText: { color: "#d8d4ec", fontSize: "0.82rem", lineHeight: 1.5 },
 };
