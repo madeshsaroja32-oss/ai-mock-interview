@@ -63,7 +63,7 @@ export default function InterviewSession() {
   if (!interview) {
     return (
       <PageLayout title="Interview">
-        <p style={styles.muted}>{error || "Loading..."}</p>
+        <p style={{ color: "#a5a0c2" }}>{error || "Loading..."}</p>
       </PageLayout>
     );
   }
@@ -71,118 +71,179 @@ export default function InterviewSession() {
   const total = interview.questions.length;
   const done = interview.answers.length;
   const isLast = current === total - 1;
-  const progressPct = Math.round((done / total) * 100);
+  const progressPct = Math.round(((current + (feedback ? 1 : 0)) / total) * 100);
+
+  // Average score so far
+  const scores = interview.answers.map((a) => a.score).filter((s) => s != null);
+  const avgSoFar = scores.length
+    ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
+    : null;
 
   return (
     <PageLayout>
-      {/* Custom top bar */}
+      {/* ─── Top bar ─── */}
       <div style={styles.topBar}>
         <div>
           <div style={styles.qCounter}>
-            Question <span style={styles.qBig}>{current + 1}</span> / {total}
+            Question <span style={styles.qBig}>{current + 1}</span>{" "}
+            <span style={styles.qSlash}>/ {total}</span>
           </div>
           <div style={styles.roleLabel}>Role: {interview.role}</div>
         </div>
-        <div style={styles.pillProgress}>
-          <div
-            style={{
-              ...styles.pillFill,
-              width: `${progressPct}%`,
-            }}
-          />
-          <span style={styles.pillText}>{progressPct}%</span>
+
+        <div style={styles.progressWrap}>
+          <div style={styles.progressTrack}>
+            <div
+              style={{
+                ...styles.progressFill,
+                width: `${progressPct}%`,
+              }}
+            />
+          </div>
+          <div style={styles.progressLabel}>{progressPct}% complete</div>
         </div>
       </div>
 
-      {/* Main card */}
-      <div style={styles.card}>
-        <div style={styles.questionNumber}>
-          <span style={styles.qMark}>Q{current + 1}</span>
-        </div>
+      {/* ─── Two-column layout ─── */}
+      <div style={styles.grid}>
+        {/* LEFT: Question card */}
+        <div style={styles.card}>
+          <div style={styles.qBadge}>Q{current + 1}</div>
 
-        <h2 style={styles.question}>{interview.questions[current]}</h2>
+          <h2 style={styles.question}>{interview.questions[current]}</h2>
 
-        {!feedback ? (
-          <>
-            <textarea
-              style={styles.textarea}
-              placeholder="Type your answer here..."
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              rows={8}
-            />
-            {error && <p style={styles.error}>{error}</p>}
-            <div style={styles.footerRow}>
-              <span style={styles.hint}>
-                Take your time. AI will score your answer.
-              </span>
+          {!feedback ? (
+            <>
+              <textarea
+                style={styles.textarea}
+                placeholder="Type your answer here... Be specific, use examples, and structure your thoughts."
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                rows={10}
+              />
+
+              <div style={styles.textareaFooter}>
+                <span style={styles.hint}>
+                  💡 Tip: aim for 3-5 sentences. AI scores on clarity, depth, and relevance.
+                </span>
+                <span style={styles.charCount}>
+                  {answer.length} chars
+                </span>
+              </div>
+
+              {error && <div style={styles.error}>{error}</div>}
+
               <button
                 style={{
-                  ...styles.button,
+                  ...styles.submitBtn,
                   opacity: busy || !answer.trim() ? 0.5 : 1,
                   cursor: busy || !answer.trim() ? "not-allowed" : "pointer",
                 }}
                 disabled={busy || !answer.trim()}
                 onClick={handleSubmit}
               >
-                {busy ? "Evaluating..." : "Submit Answer →"}
+                {busy ? "🤖 AI is evaluating..." : "Submit Answer →"}
               </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={styles.feedbackBox}>
-              <div style={styles.feedbackHeader}>
-                <span style={styles.feedbackLabel}>AI SCORE</span>
-                <div style={styles.scoreWrap}>
-                  <span style={styles.scoreBig}>{feedback.score}</span>
-                  <span style={styles.scoreMax}>/10</span>
+            </>
+          ) : (
+            <>
+              <div style={styles.feedbackCard}>
+                <div style={styles.feedbackHeader}>
+                  <span style={styles.feedbackLabel}>AI EVALUATION</span>
+                  <div style={styles.scoreWrap}>
+                    <span style={styles.scoreBig}>{feedback.score}</span>
+                    <span style={styles.scoreMax}>/10</span>
+                  </div>
+                </div>
+
+                <p style={styles.feedbackText}>{feedback.feedback}</p>
+
+                <div style={styles.twoCol}>
+                  {feedback.strengths?.length > 0 && (
+                    <div style={styles.listBox}>
+                      <div style={styles.listTitle}>✅ Strengths</div>
+                      <ul style={styles.list}>
+                        {feedback.strengths.map((s, i) => (
+                          <li key={i}>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {feedback.improvements?.length > 0 && (
+                    <div style={styles.listBox}>
+                      <div style={styles.listTitle}>💡 Improvements</div>
+                      <ul style={styles.list}>
+                        {feedback.improvements.map((s, i) => (
+                          <li key={i}>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <p style={styles.feedbackText}>{feedback.feedback}</p>
+              <button
+                style={{ ...styles.submitBtn, width: "100%", marginTop: "1.25rem" }}
+                disabled={busy}
+                onClick={handleNext}
+              >
+                {busy
+                  ? "Finishing..."
+                  : isLast
+                  ? "Finish Interview ✨"
+                  : "Next Question →"}
+              </button>
+            </>
+          )}
+        </div>
 
-              <div style={styles.twoCol}>
-                {feedback.strengths?.length > 0 && (
-                  <div style={styles.listBox}>
-                    <div style={styles.listTitle}>✅ Strengths</div>
-                    <ul style={styles.list}>
-                      {feedback.strengths.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {feedback.improvements?.length > 0 && (
-                  <div style={styles.listBox}>
-                    <div style={styles.listTitle}>💡 Improvements</div>
-                    <ul style={styles.list}>
-                      {feedback.improvements.map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+        {/* RIGHT: Interview guide panel */}
+        <div style={styles.sidePanel}>
+          <div style={styles.sideCard}>
+            <div style={styles.sideTitle}>📊 Session Stats</div>
+            <div style={styles.statRow}>
+              <span style={styles.statKey}>Answered</span>
+              <span style={styles.statVal}>
+                {done} / {total}
+              </span>
             </div>
+            <div style={styles.statRow}>
+              <span style={styles.statKey}>Avg Score</span>
+              <span style={styles.statVal}>{avgSoFar ?? "—"}</span>
+            </div>
+            <div style={styles.statRow}>
+              <span style={styles.statKey}>Progress</span>
+              <span style={styles.statVal}>{progressPct}%</span>
+            </div>
+          </div>
 
-            <button
-              style={{
-                ...styles.button,
-                width: "100%",
-                marginTop: "1.25rem",
-              }}
-              disabled={busy}
-              onClick={handleNext}
-            >
-              {busy
-                ? "Finishing..."
-                : isLast
-                ? "Finish Interview ✨"
-                : "Next Question →"}
-            </button>
-          </>
-        )}
+          <div style={styles.sideCard}>
+            <div style={styles.sideTitle}>🎯 Answer Tips</div>
+            <ul style={styles.tipList}>
+              <li>Start with the key idea</li>
+              <li>Give 1 concrete example</li>
+              <li>Mention trade-offs</li>
+              <li>Keep it structured</li>
+              <li>Stay under 2 minutes</li>
+            </ul>
+          </div>
+
+          <div style={styles.sideCard}>
+            <div style={styles.sideTitle}>⚡️ Quick Facts</div>
+            <div style={styles.factRow}>
+              <span style={styles.factIcon}>🧠</span>
+              <span style={styles.factText}>AI reads your answer for clarity and depth</span>
+            </div>
+            <div style={styles.factRow}>
+              <span style={styles.factIcon}>📋</span>
+              <span style={styles.factText}>Feedback appears instantly after you submit</span>
+            </div>
+            <div style={styles.factRow}>
+              <span style={styles.factIcon}>🏆</span>
+              <span style={styles.factText}>Final report is generated after all questions</span>
+            </div>
+          </div>
+        </div>
       </div>
     </PageLayout>
   );
@@ -194,8 +255,8 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     flexWrap: "wrap",
-    gap: "1rem",
-    marginBottom: "0.5rem",
+    gap: "1.5rem",
+    marginBottom: "1.5rem",
   },
   qCounter: {
     color: "#c4b5fd",
@@ -205,41 +266,49 @@ const styles = {
   },
   qBig: {
     color: "#f5f3ff",
-    fontSize: "1.5rem",
+    fontSize: "1.6rem",
     fontWeight: 800,
+  },
+  qSlash: {
+    color: "#a5a0c2",
+    fontSize: "0.95rem",
+    fontWeight: 500,
   },
   roleLabel: {
     color: "#a5a0c2",
     fontSize: "0.82rem",
     marginTop: "0.2rem",
   },
-  pillProgress: {
-    position: "relative",
-    width: "200px",
-    height: "30px",
-    background: "rgba(139, 92, 246, 0.15)",
+  progressWrap: {
+    flex: 1,
+    maxWidth: "360px",
+  },
+  progressTrack: {
+    height: "8px",
+    background: "rgba(139, 92, 246, 0.12)",
     borderRadius: "999px",
     overflow: "hidden",
-    border: "1px solid rgba(139, 92, 246, 0.25)",
   },
-  pillFill: {
-    position: "absolute",
-    inset: 0,
+  progressFill: {
+    height: "100%",
     background: "linear-gradient(90deg, #8b5cf6, #ec4899)",
     borderRadius: "999px",
     transition: "width 0.4s ease",
   },
-  pillText: {
-    position: "relative",
-    display: "block",
-    textAlign: "center",
-    lineHeight: "30px",
-    color: "white",
-    fontWeight: 700,
-    fontSize: "0.8rem",
-    zIndex: 1,
+  progressLabel: {
+    color: "#a5a0c2",
+    fontSize: "0.72rem",
+    marginTop: "0.35rem",
+    textAlign: "right",
   },
 
+  /* Two-column grid */
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1.6fr) minmax(260px, 1fr)",
+    gap: "1.25rem",
+    alignItems: "flex-start",
+  },
   card: {
     background: "rgba(30, 27, 58, 0.55)",
     backdropFilter: "blur(14px)",
@@ -247,34 +316,30 @@ const styles = {
     border: "1px solid rgba(139, 92, 246, 0.25)",
     borderRadius: "18px",
     padding: "2rem",
-    maxWidth: "780px",
-    marginTop: "1.5rem",
   },
-  questionNumber: {
+  qBadge: {
     display: "inline-block",
-    marginBottom: "0.75rem",
-  },
-  qMark: {
     background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
     color: "white",
-    padding: "0.3rem 0.75rem",
+    padding: "0.35rem 0.85rem",
     borderRadius: "8px",
     fontSize: "0.8rem",
     fontWeight: 800,
     letterSpacing: "0.5px",
     boxShadow: "0 4px 12px rgba(139, 92, 246, 0.5)",
+    marginBottom: "1rem",
   },
   question: {
-    fontSize: "1.25rem",
-    marginTop: "0.5rem",
-    marginBottom: "1.5rem",
-    lineHeight: 1.55,
+    fontSize: "1.2rem",
+    marginTop: 0,
+    marginBottom: "1.25rem",
+    lineHeight: 1.6,
     color: "#f5f3ff",
     fontWeight: 600,
   },
   textarea: {
     width: "100%",
-    padding: "1rem",
+    padding: "1.1rem",
     borderRadius: "12px",
     border: "1px solid rgba(139, 92, 246, 0.25)",
     background: "rgba(15, 10, 35, 0.6)",
@@ -283,34 +348,40 @@ const styles = {
     fontFamily: "inherit",
     resize: "vertical",
     outline: "none",
-    lineHeight: 1.6,
+    lineHeight: 1.65,
     boxSizing: "border-box",
-    transition: "border-color 0.2s",
   },
-  button: {
-    padding: "0.85rem 1.6rem",
-    borderRadius: "10px",
+  textareaFooter: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "1rem",
+    marginTop: "0.65rem",
+    flexWrap: "wrap",
+  },
+  hint: {
+    color: "#a5a0c2",
+    fontSize: "0.82rem",
+    flex: 1,
+    minWidth: "200px",
+  },
+  charCount: {
+    color: "#a5a0c2",
+    fontSize: "0.78rem",
+    fontVariantNumeric: "tabular-nums",
+  },
+  submitBtn: {
+    marginTop: "1.25rem",
+    padding: "0.95rem 1.75rem",
+    borderRadius: "12px",
     border: "none",
     background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
     color: "white",
     fontWeight: 700,
     cursor: "pointer",
-    fontSize: "0.95rem",
+    fontSize: "0.98rem",
     letterSpacing: "0.3px",
     boxShadow: "0 8px 22px rgba(139, 92, 246, 0.45)",
-    transition: "opacity 0.2s",
-  },
-  footerRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "1rem",
-    flexWrap: "wrap",
-    marginTop: "1.25rem",
-  },
-  hint: {
-    color: "#a5a0c2",
-    fontSize: "0.82rem",
   },
   error: {
     marginTop: "1rem",
@@ -323,11 +394,12 @@ const styles = {
   },
 
   /* Feedback */
-  feedbackBox: {
+  feedbackCard: {
     background: "rgba(15, 10, 35, 0.55)",
     border: "1px solid rgba(139, 92, 246, 0.2)",
     borderRadius: "14px",
     padding: "1.5rem",
+    marginTop: "0.5rem",
   },
   feedbackHeader: {
     display: "flex",
@@ -349,7 +421,7 @@ const styles = {
     gap: "0.15rem",
   },
   scoreBig: {
-    fontSize: "2.4rem",
+    fontSize: "2.6rem",
     fontWeight: 800,
     background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
     WebkitBackgroundClip: "text",
@@ -370,7 +442,7 @@ const styles = {
   },
   twoCol: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
     gap: "1rem",
   },
   listBox: {
@@ -392,5 +464,57 @@ const styles = {
     lineHeight: 1.55,
     fontSize: "0.85rem",
   },
-  muted: { color: "#a5a0c2" },
+
+  /* Right side panel */
+  sidePanel: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    position: "sticky",
+    top: "1.5rem",
+  },
+  sideCard: {
+    background: "rgba(30, 27, 58, 0.55)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
+    border: "1px solid rgba(139, 92, 246, 0.2)",
+    borderRadius: "14px",
+    padding: "1.25rem",
+  },
+  sideTitle: {
+    fontSize: "0.9rem",
+    fontWeight: 700,
+    color: "#f5f3ff",
+    marginBottom: "1rem",
+    letterSpacing: "0.3px",
+  },
+  statRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0.5rem 0",
+    borderBottom: "1px solid rgba(139, 92, 246, 0.1)",
+  },
+  statKey: { color: "#a5a0c2", fontSize: "0.85rem" },
+  statVal: { color: "#f5f3ff", fontWeight: 700, fontSize: "0.9rem" },
+
+  tipList: {
+    color: "#d8d4ec",
+    paddingLeft: "1.1rem",
+    margin: 0,
+    lineHeight: 1.7,
+    fontSize: "0.85rem",
+  },
+  factRow: {
+    display: "flex",
+    gap: "0.6rem",
+    alignItems: "flex-start",
+    marginBottom: "0.75rem",
+  },
+  factIcon: { fontSize: "1rem", flexShrink: 0 },
+  factText: {
+    color: "#d8d4ec",
+    fontSize: "0.82rem",
+    lineHeight: 1.5,
+  },
 };
