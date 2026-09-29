@@ -93,7 +93,7 @@ export async function getResume(id) {
   return apiFetch(`/api/resume/${id}`);
 }
 
-// ---------- Interview endpoints ----------
+// ---------- Interview (open-ended) endpoints ----------
 export async function startInterview(role, resumeId, numQuestions = 5) {
   return apiFetch("/api/interview/start", {
     method: "POST",
@@ -124,4 +124,26 @@ export async function listInterviews() {
 
 export async function getInterview(interviewId) {
   return apiFetch(`/api/interview/${interviewId}`);
+}
+
+// ---------- Quiz (MCQ) endpoints ----------
+export async function startQuiz(topic, resumeId, numQuestions = 5) {
+  return apiFetch("/api/interview/quiz/start", {
+    method: "POST",
+    body: JSON.stringify({
+      topic,
+      resume_id: resumeId,
+      num_questions: numQuestions,
+    }),
+  });
+}
+
+export async function submitQuizAnswer(interviewId, questionIndex, selectedIndex) {
+  return apiFetch(`/api/interview/${interviewId}/quiz-answer`, {
+    method: "POST",
+    body: JSON.stringify({
+      question_index: questionIndex,
+      selected_index: selectedIndex,
+    }),
+  });
 }
