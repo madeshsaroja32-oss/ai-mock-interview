@@ -8,6 +8,8 @@ import UploadResume from "./pages/UploadResume";
 import InterviewSetup from "./pages/InterviewSetup";
 import InterviewSession from "./pages/InterviewSession";
 import InterviewReport from "./pages/InterviewReport";
+import QuizSession from "./pages/QuizSession";
+import QuizReport from "./pages/QuizReport";
 import Reports from "./pages/Reports";
 
 export default function App() {
@@ -55,6 +57,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <InterviewReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz/:id"
+            element={
+              <ProtectedRoute>
+                <QuizSession />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz/:id/report"
+            element={
+              <ProtectedRoute>
+                <QuizReport />
               </ProtectedRoute>
             }
           />
